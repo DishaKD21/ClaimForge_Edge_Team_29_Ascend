@@ -5,7 +5,6 @@ from fastapi import HTTPException, UploadFile
 
 from app.config import settings
 from app.firebase.firestore_service import firestore_service
-from app.firebase.storage_service import storage_service
 
 
 class EvidenceService:
@@ -18,13 +17,13 @@ class EvidenceService:
             raise HTTPException(status_code=400, detail="Empty file")
 
         ext = os.path.splitext(file.filename)[1].lower()
-        if evidence_type in {"image", "video"} and ext not in settings.ALLOWED_EXTENSIONS:
+        if evidence_type == "image" and ext not in settings.ALLOWED_EXTENSIONS:
             raise HTTPException(status_code=400, detail="Unsupported file type")
 
         if evidence_type == "text":
             return
 
-        if file.content_type not in {"image/jpeg", "image/png", "video/mp4", "video/quicktime"}:
+        if file.content_type not in {"image/jpeg", "image/png"}:
             raise HTTPException(status_code=400, detail="Unsupported file type")
 
         file.file.seek(0, os.SEEK_END)
@@ -52,8 +51,6 @@ class EvidenceService:
                     {
                         "type": "text",
                         "content": content,
-                        "fileName": "text_evidence.txt",
-                        "storagePath": "",
                         "mimeType": "text/plain",
                     },
                 )
@@ -63,24 +60,11 @@ class EvidenceService:
         EvidenceService.validate_file(file, evidence_type)
 
         try:
-            storage_path = storage_service.upload_file(file.file, claim_id, file.filename)
-        except ValueError as exc:
-            message = str(exc)
-            if message == "Empty file":
-                raise HTTPException(status_code=400, detail="Empty file") from exc
-            if message == "Unsupported file type":
-                raise HTTPException(status_code=400, detail="Unsupported file type") from exc
-            raise HTTPException(status_code=500, detail=f"Firebase Storage upload failure: {message}") from exc
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Firebase Storage upload failure: {exc}") from exc
-
-        try:
             result = firestore_service.create_evidence(
                 claim_id,
                 {
                     "type": evidence_type,
                     "fileName": file.filename,
-                    "storagePath": storage_path,
                     "mimeType": file.content_type or "application/octet-stream",
                 },
             )

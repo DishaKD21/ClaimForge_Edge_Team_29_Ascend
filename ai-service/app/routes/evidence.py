@@ -1,6 +1,9 @@
+import os
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+
+from app.config import settings
 
 router = APIRouter(prefix="/api/v1/claims", tags=["evidence"])
 
@@ -12,10 +15,10 @@ def upload_evidence(
     content: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
 ):
-    from app.main import firestore_service, storage_service
+    from app.main import firestore_service
 
     normalized_type = type.lower()
-    if normalized_type not in {"image", "video", "text"}:
+    if normalized_type not in {"image", "text"}:
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
     if normalized_type == "text" and file is not None:
@@ -33,8 +36,6 @@ def upload_evidence(
                 {
                     "type": "text",
                     "content": content,
-                    "fileName": "text_evidence.txt",
-                    "storagePath": "",
                     "mimeType": "text/plain",
                 },
             )
@@ -46,17 +47,22 @@ def upload_evidence(
     if file.filename is None or file.filename == "":
         raise HTTPException(status_code=400, detail="Empty file")
 
-    try:
-        storage_path = storage_service.upload_file(file.file, claim_id, file.filename)
-    except ValueError as exc:
-        message = str(exc)
-        if message == "Empty file":
-            raise HTTPException(status_code=400, detail="Empty file") from exc
-        if message == "Unsupported file type":
-            raise HTTPException(status_code=400, detail="Unsupported file type") from exc
-        raise HTTPException(status_code=500, detail=f"Firebase Storage upload failure: {message}") from exc
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Firebase Storage upload failure: {exc}") from exc
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in settings.ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+
+    if file.content_type not in {"image/jpeg", "image/png"}:
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+
+    file.file.seek(0, os.SEEK_END)
+    file_size = file.file.tell()
+    file.file.seek(0)
+
+    if file_size == 0:
+        raise HTTPException(status_code=400, detail="Empty file")
+
+    if file_size > settings.MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File size exceeds the configured limit")
 
     try:
         return firestore_service.create_evidence(
@@ -64,7 +70,6 @@ def upload_evidence(
             {
                 "type": normalized_type,
                 "fileName": file.filename,
-                "storagePath": storage_path,
                 "mimeType": file.content_type or "application/octet-stream",
             },
         )

@@ -15,12 +15,10 @@ class Settings:
     MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "10"))
     MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
-    ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".mp4", ".mov", ".txt"}
+    ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".txt"}
     ALLOWED_MIME_TYPES = {
         "image/jpeg": ".jpg",
         "image/png": ".png",
-        "video/mp4": ".mp4",
-        "video/quicktime": ".mov",
         "text/plain": ".txt",
     }
 

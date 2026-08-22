@@ -33,14 +33,10 @@ class StorageService:
         filename = os.path.basename(original_filename)
         file_ext = os.path.splitext(filename)[1].lower()
 
-        if file_ext not in {".jpg", ".jpeg", ".png", ".mp4", ".mov", ".txt"}:
+        if file_ext not in {".jpg", ".jpeg", ".png", ".txt"}:
             raise ValueError("Unsupported file type")
 
-        safe_name = filename.replace(" ", "_")
-        storage_path = f"claims/{claim_id}/evidence/{safe_name}"
-        blob = self._ensure_bucket().blob(storage_path)
-        blob.upload_from_file(file, content_type=self._detect_content_type(filename))
-        return storage_path
+        raise NotImplementedError("Firebase Storage is temporarily disabled for this project")
 
     @staticmethod
     def _detect_content_type(filename: str) -> str:
@@ -49,8 +45,6 @@ class StorageService:
             ".jpg": "image/jpeg",
             ".jpeg": "image/jpeg",
             ".png": "image/png",
-            ".mp4": "video/mp4",
-            ".mov": "video/quicktime",
             ".txt": "text/plain",
         }
         return mapping.get(ext, "application/octet-stream")
