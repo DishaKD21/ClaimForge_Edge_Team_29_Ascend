@@ -18,7 +18,14 @@
  */
 
 import {Claim, ClaimAnalysisService, ClaimAnalysisResult} from '../types';
-import {uploadMultipleEvidence} from './firebaseStorage';
+import {
+  analyzeClaim as analyzeClaimApi,
+  createClaim,
+  getClaim,
+  getClaimEvidence,
+  uploadImageEvidence,
+  uploadTextEvidence,
+} from './apiClient';
 
 /**
  * Submit a complete claim for processing.
@@ -41,60 +48,77 @@ export async function submitClaim(claim: Claim): Promise<Claim> {
     throw new Error('At least two evidence items are required.');
   }
 
-  // 2. Upload media evidence to storage
-  const mediaEvidence = claim.evidence.filter((e) => e.uri && e.type !== 'text');
-  if (mediaEvidence.length > 0) {
-    try {
-      const uploadResults = await uploadMultipleEvidence(mediaEvidence);
-      // Map storage URLs back to evidence items
-      let uploadIndex = 0;
-      claim.evidence = claim.evidence.map((e) => {
-        if (e.uri && e.type !== 'text' && uploadIndex < uploadResults.length) {
-          const result = uploadResults[uploadIndex];
-          uploadIndex++;
-          return {...e, storageUrl: result.storageUrl};
-        }
-        return e;
-      });
-    } catch {
-      throw new Error('Failed to upload evidence files. Please try again.');
+  const backendClaim = await createClaim({
+    customerName: claim.claimantName,
+    description: claim.incidentDescription,
+    incidentDate: claim.incidentDate,
+    incidentTime: '00:00',
+    location: claim.incidentLocation,
+  });
+
+  for (const evidence of claim.evidence) {
+    if (evidence.type === 'text') {
+      if (evidence.text?.trim()) {
+        await uploadTextEvidence(backendClaim.claimId, evidence.text.trim());
+      }
+      continue;
     }
+
+    if (evidence.type !== 'photo' || !evidence.uri) {
+      throw new Error('Only text and image evidence can be submitted.');
+    }
+
+    await uploadImageEvidence(backendClaim.claimId, {
+      uri: evidence.uri,
+      name: evidence.name,
+      type: evidence.mimeType || 'image/jpeg',
+    });
   }
 
-  // 3. Mark as submitted
-  const submittedClaim: Claim = {
+  return {
     ...claim,
+    claimId: backendClaim.claimId,
     status: 'submitted',
     updatedAt: new Date().toISOString(),
   };
-
-  // 4. Persist to backend (future implementation)
-  // ─── Uncomment when Firebase/backend is ready ──────────────────────────
-  //
-  // import firestore from '@react-native-firebase/firestore';
-  // await firestore().collection('claims').doc(claim.claimId).set(submittedClaim);
-  //
-  // ───────────────────────────────────────────────────────────────────────
-
-  // Simulate network latency
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  return submittedClaim;
 }
 
 /**
  * Retrieve a claim by ID (future implementation).
  */
 export async function getClaimById(claimId: string): Promise<Claim | null> {
-  // ─── Future: Firestore lookup ─────────────────────────────────────────
-  //
-  // const doc = await firestore().collection('claims').doc(claimId).get();
-  // return doc.exists ? (doc.data() as Claim) : null;
-  //
-  // ──────────────────────────────────────────────────────────────────────
+  try {
+    const [backendClaim, backendEvidence] = await Promise.all([
+      getClaim(claimId),
+      getClaimEvidence(claimId),
+    ]);
 
-  void claimId;
-  return null;
+    return {
+      claimId: String(backendClaim.claimId),
+      policyNumber: '',
+      claimantName: String(backendClaim.customerName || ''),
+      incidentDate: String(backendClaim.incidentDate || ''),
+      incidentLocation: String(backendClaim.location || ''),
+      incidentDescription: String(backendClaim.description || ''),
+      witness: {name: '', statement: ''},
+      evidence: backendEvidence.map((evidence) => ({
+        id: evidence.id,
+        type: evidence.type === 'image' ? 'photo' : 'text',
+        name: evidence.fileName || 'Written Evidence',
+        text: evidence.content,
+        mimeType: evidence.mimeType,
+        createdAt: evidence.uploadedAt || new Date().toISOString(),
+      })),
+      status: 'submitted',
+      createdAt: String(backendClaim.createdAt || ''),
+      updatedAt: String(backendClaim.createdAt || ''),
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('404')) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 /**
@@ -116,4 +140,16 @@ export async function sendToAnalysis(
   }
 
   return analysisService.analyzeClaim(claim);
+}
+
+export async function analyzeClaim(
+  claimId: string,
+  options?: {text?: string; image?: {uri: string; name: string; type: string}},
+): Promise<ClaimAnalysisResult> {
+  const analysis = await analyzeClaimApi(claimId, options);
+  return {
+    claimId: analysis.claimId,
+    status: 'completed',
+    ...analysis.result,
+  };
 }

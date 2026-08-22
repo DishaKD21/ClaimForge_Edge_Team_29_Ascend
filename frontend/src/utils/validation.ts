@@ -97,7 +97,7 @@ function validateEvidence(formData: FormData): ValidationErrors {
   const evidenceTypes = new Set(formData.evidence.map((e) => e.type));
   if (evidenceTypes.size < 2) {
     errors.evidence =
-      'At least two types of evidence are required (e.g., Photo + Text, Photo + Video)';
+      'At least two types of evidence are required (e.g., Photo + Text)';
   }
 
   return errors;

@@ -1,2 +1,11 @@
 export {uploadEvidence, deleteEvidence, uploadMultipleEvidence} from './firebaseStorage';
-export {submitClaim, getClaimById, sendToAnalysis} from './claimService';
+export {
+	checkApiHealth,
+	createClaim,
+	getClaim,
+	getClaimEvidence,
+	uploadTextEvidence,
+	uploadImageEvidence,
+	analyzeClaim as analyzeClaimApi,
+} from './apiClient';
+export {submitClaim, getClaimById, sendToAnalysis, analyzeClaim} from './claimService';

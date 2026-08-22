@@ -73,8 +73,25 @@ export const ClaimIntakeScreen: React.FC<ClaimIntakeScreenProps> = ({navigation}
     setIsSubmitting(true);
     try {
       const claim = getClaimObject();
-      await submitClaim(claim);
-      navigation.replace('SubmissionSuccess', {claimId: claim.claimId});
+      const submittedClaim = await submitClaim(claim);
+      const imageEvidence = claim.evidence.find(
+        evidence => evidence.type === 'photo' && evidence.uri,
+      );
+      navigation.replace('SubmissionSuccess', {
+        claimId: submittedClaim.claimId,
+        analysisText: claim.evidence
+          .filter(evidence => evidence.type === 'text')
+          .map(evidence => evidence.text)
+          .filter(Boolean)
+          .join('\n'),
+        analysisImage: imageEvidence?.uri
+          ? {
+              uri: imageEvidence.uri,
+              name: imageEvidence.name,
+              type: imageEvidence.mimeType || 'image/jpeg',
+            }
+          : undefined,
+      });
     } catch {
       Alert.alert(
         'Submission Failed',
@@ -206,7 +223,7 @@ export const ClaimIntakeScreen: React.FC<ClaimIntakeScreenProps> = ({navigation}
       <View style={styles.stepContent}>
         <Text style={styles.stepTitle}>Evidence Collection</Text>
         <Text style={styles.stepSubtitle}>
-          Upload photos, videos, or add text evidence. At least two types of
+          Upload photos or add text evidence. At least two types of
           evidence are required.
         </Text>
 

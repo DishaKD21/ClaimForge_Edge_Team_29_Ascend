@@ -5,16 +5,37 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import {SubmissionSuccessScreenProps} from '../types/navigation';
 import {PrimaryButton} from '../components';
 import {COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS} from '../constants';
+import {analyzeClaim} from '../services/claimService';
 
 export const SubmissionSuccessScreen: React.FC<SubmissionSuccessScreenProps> = ({
   navigation,
   route,
 }) => {
-  const {claimId} = route.params;
+  const {claimId, analysisText, analysisImage} = route.params;
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true);
+    try {
+      const result = await analyzeClaim(claimId, {
+        text: analysisText,
+        image: analysisImage,
+      });
+      Alert.alert('Analysis Complete', JSON.stringify(result, null, 2));
+    } catch (error) {
+      Alert.alert(
+        'Analysis Unavailable',
+        error instanceof Error ? error.message : 'Unable to analyze this claim.',
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -53,6 +74,12 @@ export const SubmissionSuccessScreen: React.FC<SubmissionSuccessScreenProps> = (
 
         {/* Actions */}
         <View style={styles.actions}>
+          <PrimaryButton
+            title="Analyze Claim"
+            onPress={handleAnalyze}
+            loading={isAnalyzing}
+            disabled={isAnalyzing}
+          />
           <PrimaryButton
             title="Back to Home"
             onPress={() => navigation.navigate('Home')}

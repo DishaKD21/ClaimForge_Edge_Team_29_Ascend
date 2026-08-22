@@ -48,10 +48,11 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({
   const validateFile = (asset: Asset): string | null => {
     const sizeMB = (asset.fileSize || 0) / 1024 / 1024;
     const isVideo = asset.type?.startsWith('video/');
-
-    if (isVideo && sizeMB > EVIDENCE_CONFIG.maxVideoSizeMB) {
-      return `Video file is too large. Maximum size is ${EVIDENCE_CONFIG.maxVideoSizeMB}MB.`;
+    if (isVideo) {
+      Alert.alert('Unsupported Evidence', 'Only image and text evidence are supported.');
+      return null;
     }
+
     if (!isVideo && sizeMB > EVIDENCE_CONFIG.maxPhotoSizeMB) {
       return `Image file is too large. Maximum size is ${EVIDENCE_CONFIG.maxPhotoSizeMB}MB.`;
     }
@@ -73,7 +74,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({
     const isVideo = asset.type?.startsWith('video/');
     const evidence: Evidence = {
       id: generateId(),
-      type: isVideo ? 'video' : 'photo',
+      type: 'photo',
       name: asset.fileName || `${source}_${Date.now()}.jpg`,
       uri: asset.uri,
       mimeType: asset.type,
@@ -135,32 +136,13 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({
     }
   };
 
-  const handleSelectVideo = async () => {
-    setIsUploading(true);
-    try {
-      const result = await launchImageLibrary({
-        mediaType: 'video',
-        selectionLimit: 1,
-      });
-
-      if (result.assets && result.assets.length > 0) {
-        handleAsset(result.assets[0], 'video');
-      }
-    } catch {
-      Alert.alert('Error', 'Failed to open video library. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const photoCount = existingEvidence.filter(e => e.type === 'photo').length;
-  const videoCount = existingEvidence.filter(e => e.type === 'video').length;
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Add Evidence</Text>
       <Text style={styles.subtitle}>
-        Capture or select photos and videos as claim evidence.
+        Capture or select photos as claim evidence.
       </Text>
 
       <View style={styles.uploaderGrid}>
@@ -188,32 +170,14 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({
           <Text style={styles.uploadHint}>Select image</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.uploadOption, isUploading && styles.uploadOptionDisabled]}
-          onPress={handleSelectVideo}
-          disabled={isUploading}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel="Select video from gallery">
-          <Text style={styles.uploadIcon}>🎥</Text>
-          <Text style={styles.uploadLabel}>Video</Text>
-          <Text style={styles.uploadHint}>Optional</Text>
-        </TouchableOpacity>
       </View>
 
-      {(photoCount > 0 || videoCount > 0) && (
+      {photoCount > 0 && (
         <View style={styles.countRow}>
           {photoCount > 0 && (
             <View style={styles.countBadge}>
               <Text style={styles.countText}>
                 📷 {photoCount} photo{photoCount !== 1 ? 's' : ''}
-              </Text>
-            </View>
-          )}
-          {videoCount > 0 && (
-            <View style={styles.countBadge}>
-              <Text style={styles.countText}>
-                🎥 {videoCount} video{videoCount !== 1 ? 's' : ''}
               </Text>
             </View>
           )}

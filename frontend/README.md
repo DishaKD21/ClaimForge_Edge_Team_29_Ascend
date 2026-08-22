@@ -6,7 +6,7 @@ Part of the **ClaimForge Edge** team project. This is the `frontend/` module.
 Sibling modules live in `ai-service/` (Gen-AI + conflict detection) and
 `firebase/` (rules + integration).
 
-Mobile-first insurance claim submission experience for field agents. Capture claim details, collect photographic evidence, record witness statements, and submit claims for AI-powered verification.
+Mobile-first insurance claim submission experience for field agents. Capture claim details, collect photographic evidence, record witness statements, and submit claims to the FastAPI backend for AI-powered verification.
 
 ---
 
@@ -16,7 +16,7 @@ Mobile-first insurance claim submission experience for field agents. Capture cla
 - **React Navigation** (Native Stack)
 - **react-native-image-picker** (camera + gallery)
 - **react-native-safe-area-context** + **react-native-screens**
-- **@react-native-firebase/storage** (prepared, placeholder active)
+- **FastAPI HTTP API** (claims, evidence, and analysis)
 
 ---
 
@@ -45,9 +45,20 @@ cd ios && pod install && cd ..
 
 ---
 
-## Environment Variables
+## Backend Connection
 
-This project uses Firebase for evidence storage. You must add Firebase credentials:
+The frontend sends requests to the FastAPI backend at `http://localhost:8000` on iOS and `http://10.0.2.2:8000` on an Android emulator. Start the backend first:
+
+```bash
+cd ../ai-service
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Image bytes are sent directly to the backend for processing. The frontend does not upload images to Firebase Storage.
+
+## Native Firebase Configuration
+
+Native Firebase credentials are not required for the current API flow. If native Firebase features are added later, place the credentials here:
 
 ### Android
 
