@@ -1,0 +1,7 @@
+[
+  {"id":"R1","title":"Duplicate evidence","rule":"Identical evidence files should be flagged and should not be treated as independent corroboration."},
+  {"id":"R2","title":"Timestamp mismatch","rule":"A material mismatch between the reported incident time and evidence metadata should trigger follow-up verification."},
+  {"id":"R3","title":"Contradictory statements","rule":"Materially contradictory witness statements should be reconciled before a confident approval."},
+  {"id":"R4","title":"Incomplete evidence","rule":"If critical evidence is missing or unreadable, use requires_follow_up rather than guessing."},
+  {"id":"R5","title":"Fraud threshold","rule":"Fraudulent should be used only when multiple strong indicators support deliberate manipulation or deception; suspicion alone is insufficient."}
+]
