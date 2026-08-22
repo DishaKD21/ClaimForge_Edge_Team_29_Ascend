@@ -22,6 +22,16 @@ class Settings:
         "text/plain": ".txt",
     }
 
+    # RAG Settings
+    CHROMA_DB_DIR = os.getenv("CHROMA_DB_DIR", "./chroma_db")
+    EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
+    CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "500"))
+    CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50"))
+    RAG_TOP_K = int(os.getenv("RAG_TOP_K", "5"))
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", os.getenv("LLM_API_KEY", ""))
+    LLM_API_KEY = os.getenv("LLM_API_KEY", os.getenv("GEMINI_API_KEY", ""))
+    LLM_MODEL = os.getenv("LLM_MODEL", "gemini-1.5-flash")
+
     @classmethod
     def required_firebase_values(cls):
         return {
