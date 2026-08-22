@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# React Native
+.buckconfig
+*.haste_map*
+*.metro*
+
+# Android
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+
+# iOS
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+ios/*.xcuserdata
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Firebase credentials
+google-services.json
+GoogleService-Info.plist
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Bundle
+*.jsbundle
+*.bundle
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Local build logs / scratch
+*.log
+android/local.properties
