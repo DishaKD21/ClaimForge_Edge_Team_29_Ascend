@@ -1,0 +1,12 @@
+ai_service/                       # Python + FastAPI
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── routes/
+│   │   │   ├── analysis.py
+│   │   │   └── chatbot.py
+│   │   ├── rag/
+│   │   ├── llm/
+│   │   ├── conflict/
+│   │   └── verdict/
+│   └── requirements.txt
+│
