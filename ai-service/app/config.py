@@ -30,7 +30,7 @@ class Settings:
     RAG_TOP_K = int(os.getenv("RAG_TOP_K", "5"))
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", os.getenv("LLM_API_KEY", ""))
     LLM_API_KEY = os.getenv("LLM_API_KEY", os.getenv("GEMINI_API_KEY", ""))
-    LLM_MODEL = os.getenv("LLM_MODEL", "gemini-1.5-flash")
+    LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3.6-flash")
 
     @classmethod
     def required_firebase_values(cls):

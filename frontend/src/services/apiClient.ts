@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 
-// Android emulators reach the host machine through 10.0.2.2.
-const API_BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+// Android emulators reach the host machine through 10.0.2.2.   || 172.29.80.1
+const API_BASE_URL = Platform.OS === 'android' ? 'http://172.29.80.1:8000' : 'http://localhost:8000';
 
 export interface ApiClaimResponse {
   claimId: string;

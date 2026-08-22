@@ -82,7 +82,6 @@ class VectorStore:
         documents = []
         metadatas = []
         texts_to_embed = []
-
         for c in chunks:
             chunk_id = c["chunk_id"]
             text = c["text"]
@@ -228,7 +227,7 @@ class VectorStore:
             sql += " WHERE " + " AND ".join(where_clauses)
 
         with sqlite3.connect(self.fallback_db_path) as conn:
-            rows = conn.fetchall() if not params else conn.execute(sql, params).fetchall()
+            rows = conn.execute(sql, params).fetchall()
 
         if not rows:
             return []
@@ -280,7 +279,7 @@ class VectorStore:
             sql += " WHERE " + " AND ".join(where_clauses)
 
         with sqlite3.connect(self.fallback_db_path) as conn:
-            rows = conn.fetchall() if not params else conn.execute(sql, params).fetchall()
+            rows = conn.execute(sql, params).fetchall()
 
         query_words = set(query.lower().split())
         results = []

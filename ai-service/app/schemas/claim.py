@@ -3,6 +3,11 @@ from datetime import date
 from pydantic import BaseModel, Field
 
 
+class TextEvidenceCreate(BaseModel):
+    type: str = Field(default="text", pattern="^text$")
+    content: str = Field(..., min_length=1)
+
+
 class ClaimCreate(BaseModel):
     customerName: str = Field(..., min_length=1)
     description: str = Field(..., min_length=1)
@@ -14,3 +19,7 @@ class ClaimCreate(BaseModel):
 class ClaimResponse(BaseModel):
     claimId: str
     message: str
+
+
+class ClaimWithEvidenceCreate(ClaimCreate):
+    evidence: TextEvidenceCreate
