@@ -7,6 +7,7 @@ from app.firebase.firestore_service import firestore_service
 from app.firebase.storage_service import storage_service
 from app.routes.claims import router as claims_router
 from app.routes.evidence import router as evidence_router
+from app.routes.rag import router as rag_router
 
 app = FastAPI(title="ClaimForge Edge API", version="1.0.0")
 
@@ -37,6 +38,7 @@ def health_check():
 
 app.include_router(claims_router)
 app.include_router(evidence_router)
+app.include_router(rag_router)
 
 
 @app.get("/")
